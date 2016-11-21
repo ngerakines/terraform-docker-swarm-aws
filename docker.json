@@ -1,0 +1,47 @@
+{
+  "builders": [
+    {
+      "ami_name": "docker-swarm {{timestamp}}",
+      "ami_virtualization_type": "hvm",
+      "associate_public_ip_address": "true",
+      "instance_type": "t2.small",
+      "region": "us-west-2",
+      "source_ami_filter": {
+        "filters": {
+          "name": "*ubuntu-yakkety-16.10-amd64-server-*",
+          "root-device-type": "ebs",
+          "virtualization-type": "hvm"
+        },
+        "most_recent": true
+      },
+      "ssh_username": "ubuntu",
+      "subnet_id": "subnet-ff0def98",
+      "tags": {
+        "OS_Version": "Ubuntu",
+        "Release": "16.10"
+      },
+      "type": "amazon-ebs",
+      "security_group_ids": ["sg-11a68368"]
+    }
+  ],
+  "post-processors": null,
+  "provisioners": [
+    {
+      "destination": "/tmp/docker.options",
+      "source": "docker.options",
+      "type": "file"
+    },
+    {
+      "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
+      "inline": [
+        "apt-get install -y aptitude",
+        "aptitude -y update",
+        "aptitude install -y docker docker-compose unzip",
+        "mv /tmp/docker.options /etc/default/docker",
+        "systemctl enable docker.service",
+        "usermod -aG docker ubuntu"
+      ],
+      "type": "shell"
+    }
+  ]
+}
